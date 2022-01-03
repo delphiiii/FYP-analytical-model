@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 # Thermodynamic packages
-from ambiance import Atmosphere
+from fluids import ATMOSPHERE_1976 as Atmosphere
 import cantera as ct
 
 
@@ -230,8 +230,8 @@ class ChannelFlow:
 
     """
 
-    def __init__(self, height:float, length:float, u_bulk_0:float, *,
-        T=273.15,P=101325,conductivity=5.5e-15,permittivity=8.854e-12) -> None:
+    def __init__(self, height:float, length:float, u_bulk_0:float, *, T=273.15, P=101325,
+        rho=1.225, mu=1.716e-5, conductivity=5.5e-15, permittivity=8.854e-12) -> None:
         """
         Parameters:
         ----------
@@ -243,6 +243,8 @@ class ChannelFlow:
                 Temperature of flow (Kelvins). Assumes STP
             P : float
                 Pressure of flow (Pa). Assumes STP
+            rho, mu : float
+                Density and viscosity of flow (SI units). Assumes air at STP
             conductivity, permittivity : float
                 Physical properties of flow fluid (SI units). Assumes air at STP
         """
@@ -250,14 +252,10 @@ class ChannelFlow:
         self.height = height
         self.length = length
         self.u_bulk_0 = u_bulk_0
-
-        air = ct.Solution('air.yaml')
-        air.TP = T, P
         self.T = T
         self.P = P
-        self.rho = air.density_mass
-        self.mu = self._sutherlands_law(T)
-
+        self.rho = rho
+        self.mu = mu
         self.conductivity = conductivity
         self.permittivity = permittivity
         self.e_field = None
@@ -345,21 +343,6 @@ class ChannelFlow:
             for droplet in self.droplets:
                 droplet.set_Fe(0)
 
-    @staticmethod
-    def _sutherlands_law(T:float) -> float:
-        """Calculates viscosity at given temperature using Sutherland's law
-
-        Parameters:
-        ---------
-            T : float
-                Temperature of flow (K)
-        """
-
-        mu_0 = 1.716e-5
-        T_0 = 273.15
-        C = 110.4
-        return mu_0*((T_0+C)/(T+C))*((T/T_0)**(3/2))
-
     @classmethod
     def from_flight(cls, height:float, length:float, u_bulk_0:float, p_ratio:float, *,
         altitude=35000, mach=0.85, isen_eff=0.9):
@@ -382,9 +365,9 @@ class ChannelFlow:
                 Flow object at given conditions
         """
 
-        atm = Atmosphere(altitude*0.3048)
+        atm = Atmosphere(altitude*0.3048) # convert ft to m
         air = ct.Solution('air.yaml')
-        air.TP = atm.temperature, atm.pressure
+        air.TP = atm.T, atm.P
         gamma = air.cp/air.cv
         T_02 = air.T * (1+(mach**2)*(gamma-1)/2)
         P_02 = air.P * (1+(mach**2)*(gamma-1)/2)**(gamma/(gamma-1))
@@ -396,7 +379,7 @@ class ChannelFlow:
         h_03a = h_02 + (h_03s-h_02)/isen_eff
         air.HP = h_03a, P_02*p_ratio
 
-        return cls(height,length,u_bulk_0,T=air.T,P=air.P)
+        return cls(height,length,u_bulk_0,T=air.T,P=air.P,rho=atm.rho,mu=atm.mu)
 
 
 def gen_random_thetas(size:int, *, nozzle_range=20.):
@@ -579,7 +562,7 @@ def optimising_function(e_field_props, flow:ChannelFlow, t_step:float,
         score *= (1+e_strength_max-e_max)
 
     print(f"{e_field_props[0]:.2e}V, {e_field_props[1]:.2f}Hz, {e_field_props[2]:.2e}V bias")
-    print(f"Socre: {score}")
+    print(f"Score: {score}")
     return score
 
 def optimise_e_field(flow:ChannelFlow, t_step:float, *, e_max:float, num_phase=1):
