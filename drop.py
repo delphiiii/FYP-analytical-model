@@ -312,13 +312,6 @@ class ChannelFlow:
         droplet.set_init_cond(x_init, y_init, u_init, v_init)
         self.droplets.append(droplet)
 
-    def set_Re_drop(self) -> None:
-        """Calculates Reynold's number of all droplets using flow profile
-        """
-
-        for droplet in self.droplets:
-            droplet.set_Re_drop(self.rho, self.mu, self.get_bulk_vel(droplet.y))
-
     def set_Fd(self) -> None:
         """Calculates drag force on all droplets using flow profile
         """
@@ -367,6 +360,7 @@ class ChannelFlow:
 
         atm = Atmosphere(altitude*0.3048) # convert ft to m
         air = ct.Solution('air.yaml')
+        air.basis = 'mass'
         air.TP = atm.T, atm.P
         gamma = air.cp/air.cv
         T_02 = air.T * (1+(mach**2)*(gamma-1)/2)
@@ -378,8 +372,9 @@ class ChannelFlow:
         h_03s = air.h
         h_03a = h_02 + (h_03s-h_02)/isen_eff
         air.HP = h_03a, P_02*p_ratio
+        mu_03 = atm.viscosity(air.T)
 
-        return cls(height,length,u_bulk_0,T=air.T,P=air.P,rho=atm.rho,mu=atm.mu)
+        return cls(height,length,u_bulk_0,T=air.T,P=air.P,rho=air.density,mu=mu_03)
 
 
 def gen_random_thetas(size:int, *, nozzle_range=20.):
@@ -590,8 +585,8 @@ def optimise_e_field(flow:ChannelFlow, t_step:float, *, e_max:float, num_phase=1
     init_droplets = flow.droplets
     init_conds = [flow.e_field.amplitude, flow.e_field.freq, flow.e_field.bias]
 
-    res = minimize(optimising_function, init_conds, method='Powell',
-        args=(flow,t_step,num_phase,e_max,init_droplets))
+    res = minimize(optimising_function, init_conds, method='Nelder-Mead',
+        bounds=((0,1e6),(0,1e4),(-1e6,1e6)), args=(flow,t_step,num_phase,e_max,init_droplets))
 
     return res.x, res.fun
 
