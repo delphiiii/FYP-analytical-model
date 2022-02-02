@@ -10,19 +10,19 @@ import drop
 HEIGHT, LENGTH = 0.1, 0.3
 U_BULK, U_LIQUID = 10, 12.9
 
-N_DROPS, RANDOM_THETAS = 10, False
-P_RATIO = 25
+N_DROPS, RANDOM_THETAS = 2, False
+P_RATIO = 10
 
 # Electric field params
 MAX_FIELD_STRENGTH = 1e6
 PARALLEL_FIELD = False
-DO_E_FIELD_OPTIMISATION = True
+DO_E_FIELD_OPTIMISATION = False
 
-e_field_params = (50000,0,-25000)
+e_field_params = (100000,110,-7500)
 
 # Solver params
-DELTA_T = 5e-4
-PHASES = 2
+DELTA_T = 1e-4
+PHASES = 10
 
 
 ### Actual Code
@@ -42,7 +42,8 @@ for diam,theta in zip(droplet_diams, spray_thetas):
     u_i = U_LIQUID * np.sin(theta)
     v_i = U_LIQUID * np.cos(theta)
     flowchannel.add_droplet(drop.Droplet(diam), u_init=u_i, v_init=v_i)
-    plot_labels.append(f"d={diam*1e6:.2f}um, theta={theta*180/np.pi:.2f}deg")
+    # plot_labels.append(f"d={diam*1e6:.2f}um, theta={theta*180/np.pi:.2f}deg")
+    plot_labels.append(f"d={diam*1e6:.2f}um")
 
 # Create electric field
 e_field = drop.ElectricField(*e_field_params, parallel=PARALLEL_FIELD)
@@ -58,6 +59,10 @@ print(f"{flowchannel.e_field.amplitude:.2e}V, {flowchannel.e_field.freq:.2f}Hz, 
 title = f"u_bulk={U_BULK:.2f}. u_liquid={U_LIQUID:.2f} \
     field: {e_field_params[0]:.2e}V, {e_field_params[1]:.2f}Hz, {e_field_params[2]:.2e}V bias."
 
-fig, ax = drop.visualise(flowchannel, DELTA_T, n_phase=PHASES, labels=plot_labels, title=title)
+solution, params = drop.solve(flowchannel, t_step=DELTA_T, num_phase=PHASES)
+print(f"Electrostatic approximation factor (needs to be <<1): {params[0]}")
+print(f"Magnetic negligibility factor (needs to be <<1): {params[1]}")
+
+fig, ax = drop.visualise(solution, labels=plot_labels, title=title)
 plt.title(title)
 plt.show()
