@@ -228,7 +228,7 @@ class ChannelFlow:
     """
 
     def __init__(self, height:float, length:float, u_bulk_0:float, *, T=273.15, P=101325,
-        conductivity=5.5e-15, permittivity=8.854e-12) -> None:
+        conductivity=5.5e-15, relative_permittivity=1.0006) -> None:
         """
         Parameters:
         ----------
@@ -240,7 +240,7 @@ class ChannelFlow:
                 Temperature of flow (Kelvins). Assumes STP
             P : float
                 Pressure of flow (Pa). Assumes STP
-            conductivity, permittivity : float
+            conductivity, relative_permittivity : float
                 Physical properties of flow fluid (SI units). Assumes air at STP
         """
 
@@ -252,7 +252,7 @@ class ChannelFlow:
         self.rho = Atmosphere.density(T,P)
         self.mu = Atmosphere.viscosity(T)
         self.conductivity = conductivity
-        self.permittivity = permittivity
+        self.permittivity = relative_permittivity
         self.e_field = None
         self.droplets = []
 

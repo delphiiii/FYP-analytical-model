@@ -22,7 +22,7 @@ e_field_params = (100000,110,-7500)
 
 # Solver params
 DELTA_T = 1e-4
-PHASES = 10
+PHASES = 1
 
 
 ### Actual Code
