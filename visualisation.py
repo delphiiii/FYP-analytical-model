@@ -10,7 +10,7 @@ import drop
 HEIGHT, LENGTH = 0.1, 0.3
 U_BULK, U_LIQUID = 10, 28.2
 
-N_DROPS, RANDOM_THETAS = 2, False
+N_DROPS, RANDOM_THETAS = 1, False
 P_RATIO = 16.5
 
 # Electric field params

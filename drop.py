@@ -563,13 +563,14 @@ def optimise_e_field(flow:ChannelFlow, t_step:float, *, e_max:float, num_phase=1
             for local_phase_solution in local_solution.values(): # append y values for all phases
                 sol_array = np.append(sol_array, local_phase_solution[thresh:,1])
 
-            dist_1 = max(sol_array)/(local_flow.height/2) # non-dimensionalised distance to top wall
-            dist_2 = min(sol_array)/(local_flow.height/2) # non-dimensionalised distance to lower wall
+            dist_1 = max(sol_array)/(local_flow.height/2) # non-dimensionalised, to upper wall
+            dist_2 = min(sol_array)/(local_flow.height/2) # non-dimensionalised, to lower wall
             dist = max(abs(dist_1),abs(dist_2)) # use maximum for penalty
             score += dist
 
         # Additional penalty if field strength is too high (i.e. risk of breakdown)
-        e_strength_max = abs(local_e_field.amplitude)+abs(local_e_field.bias)/local_e_field.separation
+        e_strength_max = (abs(local_e_field.amplitude)+abs(local_e_field.bias))\
+            /local_e_field.separation
         if e_strength_max > e_max:
             score *= (1+e_strength_max-e_max)
 
