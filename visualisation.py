@@ -8,17 +8,18 @@ import drop
 ### Setting up params
 # Flow params
 HEIGHT, LENGTH = 0.1, 0.3
-U_BULK, U_LIQUID = 10, 12.9
+U_BULK, U_LIQUID = 10, 28.2
 
 N_DROPS, RANDOM_THETAS = 2, False
-P_RATIO = 10
+P_RATIO = 16.5
 
 # Electric field params
 MAX_FIELD_STRENGTH = 1e6
 PARALLEL_FIELD = False
 DO_E_FIELD_OPTIMISATION = False
 
-e_field_params = (100000,110,-7500)
+# e_field_params = (100000,100,-7500)
+e_field_params = (0,0,0)
 
 # Solver params
 DELTA_T = 1e-4
@@ -27,7 +28,8 @@ PHASES = 1
 
 ### Actual Code
 # Create flow channel
-flowchannel = drop.ChannelFlow.from_flight(HEIGHT,LENGTH,U_BULK,P_RATIO)
+# flowchannel = drop.ChannelFlow.from_flight(HEIGHT,LENGTH,U_BULK,P_RATIO)
+flowchannel = drop.ChannelFlow.from_flight(HEIGHT,LENGTH,U_BULK,P_RATIO,altitude=25000,mach=0.45)
 # flowchannel = drop.ChannelFlow(HEIGHT,LENGTH,U_BULK)
 
 # Create droplets

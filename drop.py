@@ -296,7 +296,7 @@ class ChannelFlow:
         return cls(height,length,u_bulk_0,T=air.T,P=air.P)
 
     def get_bulk_vel(self, y:float) -> float:
-        """Returns turbulant flow velocity at given y (m/s)
+        """Returns flow velocity profile at given y (m/s)
 
         Parameters:
         ----------
@@ -309,7 +309,8 @@ class ChannelFlow:
                 Flow velocity at given y (m/s)
         """
 
-        return self.u_bulk_0/0.8*((abs(1-abs(2*y)/self.height))**(1/4))
+        # return self.u_bulk_0/0.8*((abs(1-abs(2*y)/self.height))**(1/4))
+        return self.u_bulk_0
 
     def assign_electric_field(self, field:ElectricField) -> None:
         """Assigns electric field to flow channel.
@@ -408,14 +409,14 @@ def gen_droplet_sizes(size:int, *, random_sizes=False):
             Diameters of droplets with len(diams)=size
     """
 
-    shape = 1.35 # shape
+    shape = 1.6 # shape
     dist = weibull(shape)
     if random_sizes is False:
         drop_sizes = dist.ppf(np.linspace(0.05, 0.95, size+2))
     else:
         drop_sizes = dist.rvs(size)
 
-    return drop_sizes[1:-1]*1e-4
+    return drop_sizes[1:-1]*9e-5
 
 def solve(flow:ChannelFlow, t_step:float, num_phase=1):
     """Solves the input flow problem at given times
@@ -609,7 +610,7 @@ def visualise(flow_solution, channel_length=0.3, channel_height=0.1, *, labels=N
         for phase_sol in stream_sol.values():
             drop_sol = np.append(drop_sol, phase_sol)
         drop_sol = np.reshape(drop_sol, (-1,4))
-        sns.lineplot(x=drop_sol[:,0], y=drop_sol[:,1], alpha=0.5, linewidth=3, estimator=None, ax=axis)
+        sns.lineplot(x=drop_sol[:,0],y=drop_sol[:,1],alpha=0.5,linewidth=3,estimator=None,ax=axis)
 
     plt.ylim([-channel_height/2, channel_height/2])
     plt.xlim([0, channel_length])
