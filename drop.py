@@ -329,7 +329,7 @@ class ChannelFlow:
 
         self.e_field = field
 
-    def add_droplet(self, droplet:Droplet, x_init=0.05, y_init=None, u_init=0., v_init=1.) -> None:
+    def add_droplet(self, droplet:Droplet, x_init=0.1, y_init=None, u_init=0., v_init=1.) -> None:
         """Adds droplet to flow and sets initial conditions
 
         Parameters:
